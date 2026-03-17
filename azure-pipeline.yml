@@ -1,0 +1,73 @@
+# azure-pipelines.yml
+trigger:
+  branches:
+    include:
+      - "*"
+
+pr:
+  branches:
+    include:
+      - dev
+
+variables:
+  terraformVersion: "1.5.7"
+
+stages:
+  - stage: Validate
+    displayName: "Terraform Validate"
+    jobs:
+      - job: Validate
+        pool:
+          vmImage: "ubuntu-latest"
+        steps:
+          - checkout: self
+          - task: TerraformInstaller@1
+            inputs:
+              terraformVersion: $(terraformVersion)
+          - task: TerraformTaskV2@2
+            inputs:
+              provider: "azurerm"
+              command: "init"
+              backendServiceArm: "AzureServiceConnection"
+              backendAzureRmResourceGroupName: "tfstate-rg"
+              backendAzureRmStorageAccountName: "tfstate"
+              backendAzureRmContainerName: "tfstate"
+              backendAzureRmKey: "terraform.tfstate"
+          - task: TerraformTaskV2@2
+            inputs:
+              provider: "azurerm"
+              command: "validate"
+
+  - stage: Plan
+    displayName: "Terraform Plan"
+    jobs:
+      - job: Plan
+        pool:
+          vmImage: "ubuntu-latest"
+        steps:
+          - checkout: self
+          - task: TerraformTaskV2@2
+            inputs:
+              provider: "azurerm"
+              command: "plan"
+              environmentServiceNameAzureRM: "AzureServiceConnection"
+
+  - stage: Apply
+    displayName: "Terraform Apply"
+    condition: or(eq(variables['Build.SourceBranch'], 'refs/heads/dev'), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+    jobs:
+      - job: Apply
+        pool:
+          vmImage: "ubuntu-latest"
+        steps:
+          - checkout: self
+          - task: TerraformTaskV2@2
+            inputs:
+              provider: "azurerm"
+              command: "apply"
+              environmentServiceNameAzureRM: "AzureServiceConnection"
+              args: "-auto-approve"
+# AzureServiceConnection must be configured with PowerUser IAM role.
+# Feature branches: PR to dev, build validation, approval, merge to dev, then merge dev to main.
+# Only dev/main branches deploy (apply).
+# Enforce branch policies in Azure DevOps for PR validation and approval.
