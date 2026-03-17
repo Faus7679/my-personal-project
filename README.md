@@ -1,2 +1,2 @@
 # yawofaus-personal-training
-I am willing to create spring boot  microservices application
+I am working to create the AZURE DevOps CI/CD pipeline integrated with Terraform
