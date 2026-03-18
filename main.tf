@@ -40,7 +40,7 @@ resource "aws_iam_policy" "admin_policy" {
   name        = "my-personal-admin-policy"
   description = "Policy for admin role to manage EC2 and VPC resources"
 
-  policy = jsonencode{
+  policy = jsonencode({
     Version = "2012-10-17"
     Statement = [{
       Effect = "Allow"
@@ -55,7 +55,7 @@ resource "aws_iam_policy" "admin_policy" {
       ]
       Resource = "*"
     }]
-  }
+  })
 }
 
 resource "aws_subnet" "personal_subnet" {
