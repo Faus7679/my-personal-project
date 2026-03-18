@@ -12,14 +12,14 @@ resource "aws_vpc" "personal_vpc" {
 }
 
 resource "aws_s3_bucket" "personal_bucket" {
-  bucket = "my-personal-bucket"
+  bucket = "mypersonalbucket"
   tags = {
-    Name = "my-personal-bucket"
+    Name = "mypersonalbucket"
   }
 }
 
 resource "aws_iam_role" "admin_role" {
-  name = "my-personal-admin-role"
+  name = "myfauspersonalAdminRole"
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [{
@@ -37,7 +37,7 @@ resource "aws_iam_role_policy_attachment" "admin_attach" {
   policy_arn = "arn:aws:iam::aws:policy/AdministratorAccess"
 }
 resource "aws_iam_policy" "admin_policy" {
-  name        = "my-personal-admin-policy"
+  name        = "myfauspersonalAdminPolicy"
   description = "Policy for admin role to manage EC2 and VPC resources"
 
   policy = jsonencode({
