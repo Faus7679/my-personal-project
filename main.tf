@@ -11,26 +11,26 @@ resource "aws_vpc" "personal_vpc" {
   }
 }
 
-# resource "aws_s3_bucket" "personal_bucket" {
-#   bucket = "mypersonalbucket"
-#   tags = {
-#     Name = "mypersonalbucket"
-#   }
-# }
+resource "aws_s3_bucket" "personal_bucket" {
+  bucket = "mypersonalbucket"
+  tags = {
+    Name = "mypersonalbucket"
+  }
+}
 
-#resource "aws_iam_role" "admin_role" {
-# name = "myfauspersonalAdminRole"
-# assume_role_policy = jsonencode({
-#   Version = "2012-10-17"
-#   Statement = [{
-#     Action = "sts:AssumeRole"
-#     Effect = "Allow"
-#     Principal = {
-#      Service = "ec2.amazonaws.com"
-#     }
-#   }]
-#})
-#}
+resource "aws_iam_role" "admin_role" {
+  name = "myfauspersonalAdminRole"
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Action = "sts:AssumeRole"
+      Effect = "Allow"
+      Principal = {
+        Service = "ec2.amazonaws.com"
+      }
+    }]
+  })
+}
 
 resource "aws_iam_role_policy_attachment" "admin_attach" {
   role       = aws_iam_role.admin_role.name
@@ -87,6 +87,8 @@ output "s3_bucket_name" {
 
 output "iam_role_name" {
   value = aws_iam_role.admin_role.name
+
+
 }
 
 output "ec2_instance_id" {
