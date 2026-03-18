@@ -36,6 +36,27 @@ resource "aws_iam_role_policy_attachment" "admin_attach" {
   role       = aws_iam_role.admin_role.name
   policy_arn = "arn:aws:iam::aws:policy/AdministratorAccess"
 }
+resource "aws_iam_policy" "admin_policy" {
+  name        = "my-personal-admin-policy"
+  description = "Policy for admin role to manage EC2 and VPC resources"
+
+  policy = jsonencode{
+    Version = "2012-10-17"
+    Statement = [{
+      Effect = "Allow"
+      Action = [
+        "ec2:CreateVpc",
+        "ec2:DescribeVpcs",
+        "ec2:CreateSubnet",
+        "ec2:DescribeSubnets",
+        "ec2:CreateTags",
+        "ec2:RunInstances",
+        "ec2:DescribeInstances"
+      ]
+      Resource = "*"
+    }]
+  }
+}
 
 resource "aws_subnet" "personal_subnet" {
   vpc_id            = aws_vpc.personal_vpc.id
