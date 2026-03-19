@@ -10,53 +10,42 @@ pr:
       - dev
 
 variables:
+  # Reference your Secret Variable Group here if you have one
+  # or ensure AWS_ACCESS_KEY_ID/AWS_SECRET_ACCESS_KEY are in the Pipeline Variables UI
   terraformVersion: "1.5.7"
   awsRegion: "us-east-1"
 
 stages:
-  - stage: Deploy
+  - stage: Terraform_Stage
     jobs:
-      - job: Terraform
+      - job: Terraform_Job
         pool:
           vmImage: "ubuntu-latest"
+
+        # Mapping secret variables to env variables for the whole job
+        env:
+          AWS_ACCESS_KEY_ID: $(AWS_ACCESS_KEY_ID)
+          AWS_SECRET_ACCESS_KEY: $(AWS_SECRET_ACCESS_KEY)
+          AWS_DEFAULT_REGION: $(awsRegion)
+
         steps:
           - checkout: self
-
-          - task: UsePythonVersion@0
-            inputs:
-              versionSpec: "3.x"
-
-          - script: |
-              curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-              unzip awscliv2.zip
-              sudo ./aws/install
-            displayName: "Install AWS CLI"
 
           - task: TerraformInstaller@1
             displayName: "Install Terraform"
             inputs:
-            terraformVersion: "latest"
+              terraformVersion: $(terraformVersion) # Fixed indentation and used variable
+
           - script: |
-              export AWS_ACCESS_KEY_ID=$(AWS_ACCESS_KEY_ID)
-              export AWS_SECRET_ACCESS_KEY=$(AWS_SECRET_ACCESS_KEY)
-              export AWS_DEFAULT_REGION=$(awsRegion)
               terraform init
             displayName: "Terraform Init"
 
           - script: |
-              export AWS_ACCESS_KEY_ID=$(AWS_ACCESS_KEY_ID)
-              export AWS_SECRET_ACCESS_KEY=$(AWS_SECRET_ACCESS_KEY)
-              export AWS_DEFAULT_REGION=$(awsRegion)
               terraform plan -out=tfplan
             displayName: "Terraform Plan"
 
+          # Only runs on actual branch pushes (not PRs) to prevent accidental infra changes
           - script: |
-              export AWS_ACCESS_KEY_ID=$(AWS_ACCESS_KEY_ID)
-              export AWS_SECRET_ACCESS_KEY=$(AWS_SECRET_ACCESS_KEY)
-              export AWS_DEFAULT_REGION=$(awsRegion)
               terraform apply -auto-approve tfplan
             displayName: "Terraform Apply"
-# Note:
-# - Store AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY as pipeline secrets (for account LEARNING 544319660712).
-# - main.tf must be in the repo root or update path accordingly.
-# - This pipeline will deploy resources defined in main.tf to your AWS account.
+            condition: and(succeeded(), eq(variables['Build.Reason'], 'IndividualCI'))
